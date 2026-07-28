@@ -1,8 +1,5 @@
 import streamlit as st
-from Optimizer import optimize
-
-import streamlit as st
-from Optimizer import optimize
+from optimizer import optimize
 
 st.set_page_config(
     page_title="AI Methanol Optimizer",
@@ -21,8 +18,9 @@ h2 = st.number_input(
     "Enter Available H₂ Feed Flow",
     min_value=0.90,
     max_value=5.40,
-    value=0.00,
-    step=0.01
+    value=3.00,
+    step=0.01,
+    format="%.2f"
 )
 # add button for optimization
 if st.button("Optimize"):
