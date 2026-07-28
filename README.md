@@ -9,7 +9,7 @@
 
 ### Prediction Result
 
-![Prediction Result](app_preview.png)
+![Prediction Result](images/app_preview.png)
 
 ## Table of Contents
 
