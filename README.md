@@ -30,6 +30,26 @@ Methanol is one of the most important industrial chemicals and is widely used in
 In real industrial processes, the hydrogen feed is often unstable and continuously fluctuates due to changes in operating conditions. These fluctuations make it difficult for plant operators to determine the optimal operating conditions required to achieve maximum methanol production. Selecting these parameters manually is time-consuming and may not always lead to the best production efficiency.
 
 To address this challenge, this project develops an AI-based methanol production optimization system. Instead of relying on manual trial-and-error, the system uses a trained machine learning model to predict methanol production and recommends the optimal CO₂ feed flow, H₂/CO₂ ratio, temperature, pressure, and reaction time based on the available hydrogen feed. This enables faster and more reliable decision-making while maximizing the predicted methanol yield.
+## Dataset Description
+
+The machine learning model was developed using a **synthetic dataset** generated to represent realistic methanol production process conditions. The dataset was designed to preserve practical relationships between the operating variables while providing sufficient data for training and evaluating machine learning models.
+
+### Features
+
+- H₂ Feed Flow
+- CO₂ Feed Flow
+- H₂/CO₂ Ratio
+- Reactor Temperature
+- Reactor Pressure
+- Reaction Time
+
+### Target Variable
+
+- Methanol Production
+
+The generated dataset follows realistic operating ranges and process behavior, making it suitable for developing and validating the prediction and optimization workflow.
+
+**Note:** The synthetic dataset was created for research and educational purposes and is not intended to represent proprietary industrial process data.
 
 ## 2. How the AI Model Solves the Problem ↓
 
