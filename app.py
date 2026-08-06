@@ -1,5 +1,5 @@
 import streamlit as st
-from Optimizer import optimize
+from optimizer import optimize
 
 st.set_page_config(
     page_title="AI Methanol Optimizer",

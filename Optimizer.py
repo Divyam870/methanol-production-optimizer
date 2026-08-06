@@ -2,7 +2,11 @@ import joblib
 import numpy as np
 
 # Load trained model
-model = joblib.load("methanol_gbr_model.pkl")
+from pathlib import Path
+import joblib
+
+MODEL_PATH = Path(__file__).parent / "methanol_gbr_model.pkl"
+model = joblib.load(MODEL_PATH)
 
 
 def optimize(h2):
