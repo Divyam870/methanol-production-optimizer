@@ -270,6 +270,14 @@ could enable continuous optimization and adaptive process control.
 pip install -r requirements.txt
 # or simply run pip install "library_name"
 
+#Create a virtual environment
+python -m venv venv
+
+#Activate it
+source venv/bin/activate  # Mac/Linux
+# OR
+venv\Scripts\activate     # Windows
+
 # Start the application
 streamlit run app.py
 
