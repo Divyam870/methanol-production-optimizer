@@ -1,4 +1,4 @@
->>>  # AI-Based Methanol Production Optimization System
+# AI-Based Methanol Production Optimization System
 
 ### Machine Learning & Grid Search-Based Optimization
 
@@ -49,7 +49,7 @@ The machine learning model was developed using a **synthetic dataset** generated
 
 The generated dataset follows realistic operating ranges and process behavior, making it suitable for developing and validating the prediction and optimization workflow.
 
-**Note:** The synthetic dataset was created for research and educational purposes and is not intended to represent proprietary industrial process data.
+**Note:** The synthetic dataset was created for research and educational purposes and is not intended to represent proprietary industrial process data. The raw dataset is not committed to this repository; to rerun the notebook, place `synthsis_Analysis_LHS_data_augmented.txt` inside a `data/` folder.
 
 ## 2. How the AI Model Solves the Problem ↓
 
@@ -83,10 +83,11 @@ production.
 
 ## 3.  Model Selection and Performance Comparison ↓
 
-Several machine learning regression algorithms were trained and evaluated to identify the
-most suitable model for predicting methanol production. Each model was assessed using
-the R² Score, which measures how well the model explains the variation in the target
-variable. A higher R² Score indicates better predictive performance.
+The notebook included in this repository (`GD_regressor.ipynb`) trains and evaluates a
+Gradient Boosting Regressor using the R² Score, which measures how well the model
+explains the variation in the target variable. The table below also records results from
+a wider comparison with other regressors that was run separately; that code is not
+included in the repository, so only the Gradient Boosting row is directly reproducible.
 
 The following regression models were compared:
 
@@ -102,7 +103,7 @@ Performance Comparison:
 | Linear Regression | 0.8619 | 0.000021 |
 | Decision Tree | 0.9775 | 0.000004 |
 | Random Forest | 0.9911 | 0.000001 |
-| Gradient Boosting | **0.9932** | **0.000001** |
+| Gradient Boosting | **0.9939** | **0.000001** |
 | XGBoost | 0.9925 | 0.000001 |
 
 After evaluating the performance of all models, Gradient Boosting Regressor achieved the
@@ -111,6 +112,9 @@ it was selected as the final model for deployment in the optimization system.
 The trained Gradient Boosting model was then saved as a .pkl file using Joblib, allowing it to
 be loaded later without retraining. This significantly reduces execution time and enables the
 application to make predictions efficiently within the Streamlit interface.
+
+*Note:* `GD_regressor.ipynb` reports R² = 0.9939. The MSE values in the table are rounded;
+the notebook now prints the full-precision value when rerun with the dataset in place.
 
 ## 4. Optimizer Working Process ↓
 
@@ -133,9 +137,12 @@ Reactor Temperature
 Reactor Pressure
 Reaction Time
 For every possible combination, the trained Gradient Boosting Regressor predicts the
-expected methanol production.
-After evaluating all feasible operating conditions, the optimizer compares every prediction
-and stores the combination that produces the highest predicted methanol yield.
+expected methanol production. The current grid uses 20 ratio values (1.0–10.3, roughly the
+5th–95th percentile of the data), 9 temperature values, 9 pressure values and 10 time
+values (2.37–10 h; the ~33 h training maximum is treated as an outlier). All feasible
+combinations are scored in a single batched prediction. After evaluating all feasible
+operating conditions, the optimizer compares every prediction and stores the combination
+that produces the highest predicted methanol yield.
 Finally, the system returns the optimal operating conditions, including:
 Available Hydrogen (H₂)
 
@@ -264,38 +271,46 @@ could enable continuous optimization and adaptive process control.
 ## How to Run
 
 1. Clone the repository.
-2. Install the required libraries:
+2. Create and activate a virtual environment:
 
 ```bash
-pip install -r requirements.txt
-# or simply run pip install "library_name"
-
-#Create a virtual environment
 python -m venv venv
 
-#Activate it
+# Activate it
 source venv/bin/activate  # Mac/Linux
 # OR
 venv\Scripts\activate     # Windows
+```
 
-# Start the application
+3. Install the required libraries:
+
+```bash
+pip install -r requirements.txt
+```
+
+4. Start the application:
+
+```bash
 streamlit run app.py
+```
 
 
 ---
 
-### 7. project structure
+### 8. Project Structure
 
 ```md
-## Project Structure
-
 methanol_project/
-│── app.py
-│── Optimizer.py
-│── methanol_gbr_model.pkl
-│── requirement.txt
-│── README.md
-└── GD_regressor.ipynb
+├── app.py                      Streamlit web application
+├── optimizer.py                Grid-search optimiser
+├── methanol_gbr_model.pkl      Trained Gradient Boosting Regressor
+├── GD_regressor.ipynb          Training notebook (needs data/ dataset)
+├── requirements.txt            Pinned dependencies
+├── README.md                   Project documentation
+├── Problem Statement.pdf       Original problem description
+└── images/
+    └── app_preview.png         Application screenshot
+```
 
-
-# GD_regressor >>> Gradient Boosting Regressor 
+`GD_regressor` stands for Gradient Boosting Regressor. The local `test_env/` virtual
+environment and `__pycache__/` are not tracked by Git.

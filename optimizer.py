@@ -1,66 +1,70 @@
+"""Grid-search optimiser built on the trained methanol production model."""
+
+from functools import lru_cache
+from itertools import product
+from pathlib import Path
+
 import joblib
 import numpy as np
-
-# Load trained model
-from pathlib import Path
-import joblib
+import pandas as pd
 
 MODEL_PATH = Path(__file__).parent / "methanol_gbr_model.pkl"
-model = joblib.load(MODEL_PATH)
+
+# Order is exactly the order used when the model was fitted in GD_regressor.ipynb.
+FEATURE_NAMES = [
+    "FeedflowCO2in",
+    "FeedflowH2in",
+    "TEMPin",
+    "PRESout",
+    "TimeCost",
+    "H2_CO2_Ratio",
+]
+
+# Search ranges based on the training data (320 rows, see GD_regressor.ipynb).
+RATIO_VALUES = np.linspace(1.0, 10.3, 20)          # ~5th to 95th percentile
+TEMP_VALUES = np.linspace(10.004390, 49.973931, 9)
+PRESSURE_VALUES = np.linspace(25.027517, 49.956616, 9)
+# The training maximum (~33.3 h) is an outlier, so search a practical range.
+TIME_VALUES = np.linspace(2.367172, 10.0, 10)
+
+CO2_MIN = 0.303735
+CO2_MAX = 1.795970
+
+
+@lru_cache(maxsize=1)
+def _load_model():
+    """Load the trained model once per process instead of on every request."""
+    return joblib.load(MODEL_PATH)
 
 
 def optimize(h2):
-
-    # Store best result
-    best_methanol = -float("inf")
-    best_conditions = None
-
-    # Search ranges
-    ratio_values = np.linspace(2.0, 4.5, 20)
-
-    temp_values = np.linspace(10.004390, 49.973931, 5)
-
-    pressure_values = np.linspace(25.027517, 49.956616, 5)
-
-    time_values = np.linspace(2.367172, 33.293734, 5)
-
-    # Optimization
-    for ratio in ratio_values:
-
-        # Calculate CO2 from H2 and Ratio
+    """Return the feasible operating conditions with the highest predicted yield."""
+    candidates = []
+    for ratio, temp, pressure, time in product(
+        RATIO_VALUES, TEMP_VALUES, PRESSURE_VALUES, TIME_VALUES
+    ):
         co2 = h2 / ratio
+        if CO2_MIN <= co2 <= CO2_MAX:
+            candidates.append((co2, h2, temp, pressure, time, ratio))
 
-        # Ignore values outside training range
-        if co2 < 0.303735 or co2 > 1.795970:
-            continue
+    if not candidates:
+        raise ValueError(
+            f"No feasible CO₂ flow for H₂={h2:.2f}: "
+            f"CO₂ must stay within [{CO2_MIN}, {CO2_MAX}]."
+        )
 
-        for temp in temp_values:
+    # One batched prediction is far faster than predicting row by row.
+    X = pd.DataFrame(candidates, columns=FEATURE_NAMES)
+    predictions = _load_model().predict(X)
+    best_index = int(np.argmax(predictions))
+    co2, _, temp, pressure, time, ratio = candidates[best_index]
 
-            for pressure in pressure_values:
-
-                for time in time_values:
-
-                    prediction = model.predict([[
-                        co2,
-                        h2,
-                        temp,
-                        pressure,
-                        time,
-                        ratio
-                    ]])
-
-                    if prediction[0] > best_methanol:
-
-                        best_methanol = prediction[0]
-
-                        best_conditions = {
-                            "H2": h2,
-                            "CO2": co2,
-                            "Ratio": ratio,
-                            "Temperature": temp,
-                            "Pressure": pressure,
-                            "TimeCost": time,
-                            "PredictedMethanol": prediction[0]
-                        }
-
-    return best_conditions
+    return {
+        "H2": float(h2),
+        "CO2": float(co2),
+        "Ratio": float(ratio),
+        "Temperature": float(temp),
+        "Pressure": float(pressure),
+        "TimeCost": float(time),
+        "PredictedMethanol": float(predictions[best_index]),
+    }

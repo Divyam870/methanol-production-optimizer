@@ -1,0 +1,14 @@
+# Python caches
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Virtual environments
+venv/
+test_env/
+.env
+
+# Local tooling and data
+.vscode/
+.streamlit/
+data/
